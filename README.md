@@ -12,7 +12,7 @@ if you want to run [render_mesh.py](render_mesh.py) succussfully, you mush chang
 ```shell
 # CUDA ID of GPU if you want to use gpu_renderer interface
 export CUDA_VISIBLE_DEVICES=0
-python -m render_demo.py
+python -m render_mesh.py
 ```
 
 - [render_mesh.py](render_mesh.py) will create an intermediate URDF file in the [cache](./cache/) folder. 
