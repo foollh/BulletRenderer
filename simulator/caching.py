@@ -5,7 +5,7 @@ import open3d as o3d
 from .body import Body
 from copy import deepcopy
 from collections import defaultdict
-from libmesh.urdf_utils import obj_to_urdf
+from libmesh import ply_to_obj, obj_to_urdf
 from .client import BulletClient
 
 def create_cache_folder(cache_path):
@@ -56,17 +56,20 @@ class BodyCache:
         self.hide_bodies()
 
         # cache folder
-        cache_path = './cache'
+        renderer_dir = os.path.dirname(os.path.dirname(__file__))
+        cache_path = os.path.join(renderer_dir, 'cache')
         create_cache_folder(cache_path)
 
         gb_label = defaultdict(lambda: 0)
         for obj in obj_infos:
-            # urdf generation
             if 'urdf_path' not in obj:
-                mesh_path = os.path.join(cache_path, obj['label']+'.obj')
+                # urdf generation
+                ply_path = os.path.join(cache_path, obj['label']+'.ply')
+                obj_path = os.path.join(cache_path, obj['label']+'.obj')
                 urdf_path = os.path.join(cache_path, obj['label']+'.urdf')
-                o3d.io.write_triangle_mesh(mesh_path, obj['mesh'])
-                obj_to_urdf(obj_path=mesh_path, urdf_path=urdf_path)
+                o3d.io.write_triangle_mesh(ply_path, obj['mesh'])
+                ply_to_obj(ply_path=ply_path, obj_path=obj_path)
+                obj_to_urdf(obj_path=obj_path, urdf_path=urdf_path)
                 obj['urdf_path'] = urdf_path
 
             gb_label[obj['label']] += 1
@@ -79,25 +82,6 @@ class BodyCache:
         remaining = deepcopy(dict(self.cache))
         bodies = [remaining[obj['label']].pop(0) for obj in obj_infos]
         return bodies
-
-    # def get_bodies_by_labels(self, labels):
-    #     self.hide_bodies()
-    #     gb_label = defaultdict(lambda: 0)
-    #     for label in labels:
-    #         gb_label[label] += 1
-
-    #     for label, n_instances in gb_label.items():
-    #         n_missing = gb_label[label] - len(self.cache[label])
-    #         for n in range(n_missing):
-    #             self._load_body(label)
-
-    #     remaining = deepcopy(dict(self.cache))
-    #     bodies = [remaining[label].pop(0) for label in labels]
-    #     return bodies
-
-    # def get_bodies_by_ids(self, ids):
-    #     labels = [self.urdf_ds[idx]['label'] for idx in ids]
-    #     return self.get_bodies_by_labels(labels)
 
     def __len__(self):
         return sum([len(bodies) for bodies in self.cache.values()])
