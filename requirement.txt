@@ -4,3 +4,4 @@ plyfile
 transforms3d
 open3d
 pybullet
+mmcv
